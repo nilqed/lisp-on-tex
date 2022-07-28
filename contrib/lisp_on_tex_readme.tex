@@ -1,0 +1,571 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{lmodern}
+\usepackage[left=2cm,right=2cm,top=2cm,bottom=2cm]{geometry}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{lisp-on-tex}
+\usepackage{framed}
+\setcounter{tocdepth}{4}
+\setcounter{secnumdepth}{4} % 5 for subpara
+\newcommand{\pT}[1]{\textbf{\texttt{\textbackslash #1}}}
+%\author{}
+\title{LISP on TeX}
+\begin{document}
+\maketitle
+\begin{abstract}
+A LISP interpreter written only with TeX macros.
+It works as a style file of LaTeX.
+LISP on TeX adopts static scoping, dynamic typing, and eager evaluation.
+We can program easily with LISP on TeX.
+\end{abstract}
+
+\tableofcontents
+
+\section{Summary}
+To use LISP on TeX, you should include the \verb|lisp-on-tex| package.
+\color{blue}
+\begin{verbatim}
+  \usepackage{lisp-on-tex}
+\end{verbatim}
+\color{black}
+
+If you do it, you can write LISP codes as a argument of \verb|\lispinterp|.
+
+\color{teal}
+\begin{verbatim}
+\lispintrep{
+  (\some \LISP 'codes')
+  % example
+  (\define (\sum \a \b) (\+ \a \b))
+}
+\end{verbatim}
+\color{black}
+
+In LISP on TeX, a symbol is a control sequence;
+a string is tokens surrounded by quotation marks;
+and an integer is a TeX's integer using colon prefix.
+
+\section{Installation}
+
+Put all files into your TEXMF tree.
+
+\section{Details} 
+
+\subsection{Class Options}
+
+\begin{tabular}{|c|c|}
+\hline 
+Option Name & Meaning \\ 
+\hline\hline 
+\tt{noGC} & Never use GC (default) \\ 
+\hline 
+\tt{markGC} & Using Mark-Sweep GC \\ 
+\hline 
+\tt{GCopt=...} & Passing option to the GC engine \\ 
+\hline 
+\end{tabular} \\ \\
+
+
+Currently, LISP on TeX supports Mark-Sweep GC.
+If you want to use it, you should use \texttt{markGC} option.
+You can also control heap size by using \texttt{GCopt={heapsize=n}}
+where $n$ is greater than $3000$. The default heap size is $32768$.
+For example, the code
+%
+\begin{verbatim}
+  \usepackage[markGC, GCopt={heapsize=5000}]{lisp-on-tex}
+\end{verbatim}
+%
+shows that LISP on TeX uses Mark-Sweep GC and the heap size is 5000.
+
+\subsection{Syntax}
+\begin{tabular}{|l|l|l}
+\hline 
+Kinds  & Literals   & Examples \\        
+\hline\hline
+\tt{CONS Cell} & \verb|`(` *obj* ... `.` *obj* `)`, `(` *obj* ... `)`| & \verb|`(\+ :1 :2)`     | \\
+\tt{Integer}   & \verb|`:` *TeX's integer*|                            & \verb|`:42`, `:"3A`    | \\
+\tt{String}    & \verb|`'` *TeX's balanced tokens* `'`|                & \verb|`'\foo{bar}baz'` | \\
+\tt{Symbol}    & \verb|*TeX's control sequence*|                       & \verb|`\cs`            | \\
+\tt{Boolean}   & \verb|`/t` or `/f`|                                   & \verb|                 | \\
+\tt{Nil}       & \verb|`()`|                                           & \verb|                 | \\
+\tt{Skip}      & \verb|`@` *TeX's skip*|                               & \verb|`@12pt plus 34cm`| \\
+\tt{Dimen}     & \verb|`!` *TeX's dimen*|                              & \verb|`!56pt`          | \\
+\hline 
+\end{tabular} \\ \\
+
+
+\subsection{Functions and Special Forms}
+
+\subsubsection{Definition}
+
+
+\paragraph{\pT{define} : Define a symbol.}
+\begin{verbatim}
+% symbol form
+(\define \foo :42) % ()
+\foo % :42
+% function form
+(\define (\foo \n) (\* \n :2))
+(\foo :3) % :6
+\end{verbatim}
+
+
+\paragraph{\pT{defineM} : Define a mutable symbol}
+\begin{verbatim}
+% symbol form
+(\defineM \foo :42) % ()
+\foo % :42
+\end{verbatim}
+
+
+\paragraph{\pT{setB} : Rewrite a mutable symbol.}
+\begin{verbatim}
+(\setB \foo 'bar')
+\foo % 'bar'
+\end{verbatim}
+
+
+\paragraph{\pT{defmacro} : Define a macro.}
+\begin{verbatim}
+(\defmacro (\foo \x) (\list (\quote \bar) \x \x \x)) % ()
+\end{verbatim}
+
+
+\paragraph{\pT{macroexpand} : Expand a macro}
+\begin{verbatim}
+(\macroexpand (\quote (\foo :1))) % (\bar :1 :1 :1)
+\end{verbatim}
+
+
+\paragraph{\pT{lambda} : Create a function.}
+
+\begin{verbatim}
+% normal form
+((\lambda (\x) (\+ \x :2)) :3) % :5
+% list form
+((\lambda \x \x) :1 :2) % (:1 :2)
+% remain argument form
+((\lambda (\x . \y) \y) :1 :2 :3) % (:2 :3)
+\end{verbatim}
+
+
+\paragraph{\pT{let} : Define local symbols.}
+\begin{verbatim}
+(\define \x 'foo')
+(\let ((\x :4) (\y :3)) (\+ \x \y)) % :7
+\x % 'foo'
+\end{verbatim}
+
+
+
+\paragraph{\pT{letM} : Define mutable local symbols.}
+
+\begin{verbatim}
+(\letM ((\x 'foo'))
+  (\begin (\setB \x 'bar') \x)) % 'bar'
+\end{verbatim}
+
+
+
+\paragraph{\pT{letrec} : Define local symbols recursively.}
+
+\begin{verbatim}
+(\letrec
+  ((\oddQ (\lambda (\n)
+             (\lispif (\= \n :0) /f (\evenQ (\- \n :1)))))
+   (\evenQ (\lambda (\n)
+             (\lispif (\= \n :0) /t (\oddQ (\- \n :1))))))
+   (\oddQ :42)) % /f
+\end{verbatim}
+
+
+\subsubsection{Control Flow}
+
+\paragraph{\pT{lispif} : Branch.}
+\begin{verbatim}
+(\lispif /t 'true' 'false') % 'true'
+(\lispif /f 'true' 'false') % 'false'
+\end{verbatim}
+
+\paragraph{\pT{begin} : Execute expressions.}
+\begin{verbatim}
+(\letM ((\x :1)) (\begin (\setB \s 'foo') \x))
+% 'foo'
+\end{verbatim}
+
+\paragraph{\pT{callOCC} : One-shot continuation.}
+\begin{verbatim}
+(\defineM \x 'unchanged')
+(\callOCC (\lambda (\c)
+             (\begin (\c '\foo ')
+                     (\setB \x 'changed')))) % '\foo '
+\x % 'unchanged'
+(\callOCC (\lambda (\c) :42)) % :42
+\end{verbatim}
+
+
+\subsubsection{String Manipulations}
+
+\paragraph{\pT{concat} : Concatenate tokens.}
+\begin{verbatim}
+(\concat '$' '\foo ' '{bar}' '$') % '$\foo {bar}$'
+\end{verbatim}
+
+\paragraph{\pT{intTOstring} : Convert a integer to TeX's tokens.}
+\begin{verbatim}
+(\intTOstring :42) % '42'
+\end{verbatim}
+
+\paragraph{\pT{group} : Grouping.}
+\begin{verbatim}
+(\group '\some {tokens}') % '{\some {tokens}}'
+\end{verbatim}
+
+\paragraph{\pT{ungroup} : Ungrouping.}
+\begin{verbatim}
+(\ungroup '{\some {tokens}}') % '\some {tokens}' 
+\end{verbatim}
+
+\paragraph{\pT{expand} : Expand tokens.}
+\begin{verbatim}
+\newcommand\foo[1]{I got #1!}
+\lispinterp{
+  (\expand '\foo{Foo}') % 'I got Foo!'
+}
+\end{verbatim}
+
+
+
+\subsubsection{Arithmetical Functions}
+
+\paragraph{\pT{+} : Addition.}
+\begin{verbatim}
+(\+) % :0
+(\+ :1 :2) % :3
+(\+ :3 :4 :5) % :12
+\end{verbatim}
+
+\paragraph{\pT{-} : Subtraction.}
+\begin{verbatim}
+(\- :1) % :-1
+(\- :3 :2) % :1
+(\- :3 :2 :1) % :0
+\end{verbatim}
+
+\paragraph{\pT{*} : Multiplication.}
+\begin{verbatim}
+(\*) % :1
+(\* :2 :3) % :6
+(\* :3 :4 :5) % :60
+\end{verbatim}
+
+\paragraph{\pT{/} : Division.}
+\begin{verbatim}
+(\/ 2) % :0 (1/2 -> 0)
+(\/ 7 2) % :3
+\end{verbatim}
+
+\paragraph{\pT{mod} : Modulo.}
+\begin{verbatim}
+(\mod :42 :23)  % :19
+(\mod :3 :2)    % :1
+(\mod :3 :-2)   % :1
+(\mod :-3 :2)   % :-1
+(\mod :-3 :-2)  % :-1
+\end{verbatim}
+
+\paragraph{\pT{>}, \pT{<}, \pT{geq}, \pT{leq} : Comparison.}
+\begin{verbatim}
+(\> :3 :2)   % /t
+(\< :2 :3)   % /t
+(\geq :3 :2) % /t
+(\geq :3 :3) % /t
+(\leq :2 :3) % /t
+(\leq :3 :3) % /t
+\end{verbatim}
+
+\paragraph{\pT{isZeroQ},\pT{positiveQ},\pT{negativeQ} : Some predicates.}
+\begin{verbatim}
+(\isZeroQ :0)    % /t
+(\positiveQ :42) % /t
+(\negativeQ :-2) % /t
+\end{verbatim}
+
+\paragraph{\pT{max} : Maximum.}
+\begin{verbatim}
+(\max :-10 :-5 :0 :5 :10) % :10
+\end{verbatim}
+
+\paragraph{\pT{min} : Minimum.}
+\begin{verbatim}
+(\min :-10 :-5 :0 :5 :10) % :-10
+\end{verbatim}
+
+
+\subsection{Logical functions}
+
+\paragraph{\pT{and}, \pT{or}, \pT{not} : Logical and, or, not}
+\begin{verbatim}
+(\and /t /t) % /t
+(\and /t /f) % /f
+(\or /t /t)  % /t
+(\or /t /f)  % /t
+(\not /t)    % /f
+\end{verbatim}
+
+
+\subsection{Traditional LISP Functions and Special Forms}
+
+\paragraph{\pT{quote} : Quote.}
+\begin{verbatim}
+(\quote :42) % :42
+(\quote (\+ :1 :2)) % (\+ :1 :2)
+\end{verbatim}
+
+\paragraph{\pT{cons}, \pT{car}, \pT{cdr} : CONS, CAR, CDR}
+\begin{verbatim}
+(\cons :42 'foo') % (:42 . 'foo')
+(\car (\quote (:1 :2))) % :1
+(\cdr (\quote (:1 :2))) % (:2)
+\end{verbatim}
+
+\paragraph{\pT{list} : Create a list}
+\begin{verbatim}
+(\list :1 :2 (\+ :3 :4)) % (:1 :2 :7)
+\end{verbatim}
+
+\paragraph{\pT{length} : Get the length of a list.}
+\begin{verbatim}
+(\length ()) % :0
+(\length (\list :1 :2 'three')) % :3
+\end{verbatim}
+
+\paragraph{\pT{map} : Map function.}
+\begin{verbatim}
+(\define (\f \x \y \z) (\+ \x \y \z))
+(\map \f (\list :1 :2 :3)
+         (\list :4 :5 :6)
+         (\list :7 :8 :9)) % (:12 :15 :18)
+\end{verbatim}
+
+\paragraph{\pT{nth} : Get the n-th value of a list (starting with 0).}
+\begin{verbatim}
+(\nth (\list 'foo' 'bar' 'baz') :1) % 'bar'
+\end{verbatim}
+
+
+\paragraph{\pT{=} : Equality.}
+\begin{verbatim}
+(\= '42' :42) % /f
+(\= :23 :23) % /t
+(\= (\cons :1 'foo') (\cons :1 'foo')) % /f
+(\= 'foo' 'foo') % /t
+\end{verbatim}
+
+\paragraph{\pT{texprint} : Convert a object to TeX's tokens and output it to the document}
+\begin{verbatim}
+(\texprint (\concat '\foo' (\group '42'))) % return () andoutput \foo{42}
+(\texprint :42) % output 42
+\end{verbatim}
+
+\paragraph{\pT{print} : (For test) output a object as TeX's tokens}
+\begin{verbatim}
+(\print ()) % output ()
+(\print (\quote \foo)) % output \string\foo
+(\print :42) % output :42
+(\print 'bar') % output 'bar'
+\end{verbatim}
+
+
+\subsection{Type predicates : \pT{xyzQ}}
+\begin{verbatim}
+(\symbolQ (\quote \cs))
+(\stringQ 'foo')
+(\intQ :42)
+(\booleanQ /f)
+(\dimenQ !12pt)
+(\skipQ @12pt plus 1in minus 3mm)
+(\pairQ (\cons :1 :2))
+(\nilQ ())
+(\funcQ \+)
+(\closureQ (\lambda () ()))
+(\defmacro (\x) ())
+(\macroQ \x)
+(\listQ ())
+(\listQ (\list :1 :2))
+(\atomQ :23)
+(\atomQ 'bar')
+(\procedureQ \+)
+(\procedureQ (\lambda () ()))
+\end{verbatim}
+
+\subsection{LaTeX Utils}
+
+\paragraph{\pT{readLaTeXCounter} : Read an integer from LaTeX}
+\begin{verbatim}
+\setcounter{foo}{42}
+\lispinterp{
+  (\readLaTeXCounter 'foo') % :42
+}
+\end{verbatim}
+
+\paragraph{\pT{message} : Wrapper of LaTeX's message}
+\begin{verbatim}
+(\message 'output') % output "message" to console and return ()
+\end{verbatim}
+
+\subsection{Others}
+
+\paragraph{\pT{read} : Read a LISP expression from stdin}
+\begin{verbatim}
+(\read) % input :42 and return it
+\end{verbatim}
+
+\paragraph{\pT{fgets} : Read a string from stdin.}
+\begin{verbatim}
+(\fgets) % input \some {tokens} and return '\some {tokens}'
+\end{verbatim}
+
+
+\section{Additional Packages}
+
+\subsection{Fixed Point Numbers}
+
+The package \verb|lisp-mod-fpnum| adds fixed point numbers
+to LISP on TeX. Load it by \verb|\usepackage|:
+\begin{verbatim}
+\usepackage{lisp-on-tex}
+\usepackage{lisp-mod-fpnum}
+\end{verbatim}
+
+
+\subsubsection{Syntax}
+\begin{tabular}{|l|l|l}
+Kinds              & Literals     & Examples      \\
+\hline
+Fixed point number & \verb|+{fpnum::` *number* `}`|    & \verb|+{fpnum::1.23}| \\
+\hline 
+\end{tabular} \\ \\
+
+
+\subsubsection{Functions}
+
+\paragraph{\pT{fpnumTOstring} : Convert a fixed point number to a string.}
+\begin{verbatim}
+(\fpnumTOstring +{fpnum::1.23}) % '1.23'
+\end{verbatim}
+
+\paragraph{\pT{fpplus} : Addition.}
+\begin{verbatim}
+(\fpplus +{fpnum::1.2} +{fpnum::1.4}) % 2.59999 (arithmetical error)
+\end{verbatim}
+
+\paragraph{\pT{fpminus} : Subtraction.}
+\begin{verbatim}
+(\fpminus +{fpnum::4.2} +{fpnum::2.3}) % 1.9
+\end{verbatim}
+
+\paragraph{\pT{fpmul} : Multiplication.}
+\begin{verbatim}
+(\fpmul +{fpnum::1.2} +{fpnum::1.4}) % 1.67998
+\end{verbatim}
+
+\paragraph{\pT{fplt} : Comparison.}
+\begin{verbatim}
+(\fplt +{fpnum::1.2} +{fpnum::2.3}) % /t
+\end{verbatim}
+
+
+\subsection{Regular Expressions}
+
+The package \texttt{lisp-mod-l3regex} is thin wrapper
+of \texttt{l3regex.} Load it by \verb|\usepackage|:
+
+\begin{verbatim}
+\usepackage{lisp-on-tex}
+\usepackage{lisp-mod-l3regex}
+\end{verbatim}
+
+\subsubsection{Functions}
+
+\paragraph{\pT{regMatch}, \pT{regMatchResult} : Match.}
+\begin{verbatim}
+(\regMatch 'hoge+' 'hogeeeeeee') % /t
+(\regMatchResult '(\w+)\s+is\s+(\w+)\.' 'He is crazy.')
+% ('He is crazy.' 'He' 'crazy')
+\end{verbatim}
+
+\paragraph{\pT{regExtract} : Extraction.}
+\begin{verbatim}
+(\regExtract '\w+' 'hello regex world') % ('hello' 'regex' 'world')
+\end{verbatim}
+
+\paragraph{\pT{regReplaceAll}, \pT{regReplaceOnce} : Replace.}
+\begin{verbatim}
+(\regReplaceAll '(\w+?)to(\w+?)' '$\1\c{to}\2$' 'AtoB BtoC') % '$A\to B$ $B\to C$'
+(\regReplaceOnce 'foo+' '[\0]' 'foooofooooooo') % '[foooo]fooooooo'
+\end{verbatim}
+
+\paragraph{\pT{regSplit} : Split.}
+\begin{verbatim}
+(\regSplit '/' '/path/to/hogehoge') % ('' 'path' 'to' 'hogehoge')
+\end{verbatim}
+
+\newpage
+\appendix{CHANGELOG}
+\begin{verbatim}
+## TODOs ##
+
+* Writing user manual
+* Add functions and special forms
+
+## CHANGELOG ##
+
+Oct. 25, 2015 : 2.0
+*************************
+
+* Add GC
+* Refine some special forms like \define
+* Add checking #args for some functions.
+* Add thin wrapper of l3regex
+
+Jul. 12, 2014 : 1.3
+*************************
+
+* Add one shot continuations.
+* Add some arithmetical functions.
+* Debug environment.
+
+Jan. 03, 2014 : 1.2
+**************************
+
+* Added TUG2013's examples.
+* Improved the performance.
+
+Aug. 10, 2013 : 1.1
+**************************
+
+* Added \letrec and \expand.
+* debug
+
+Mar. 04, 2013 : 1.0
+**************************
+
+## Licence ##
+
+Modified BSD (see LICENCE)
+
+************************************************
+HAKUTA Shizuya <hak7a3@live.jp>
+
+https://bitbucket.org/hak7a3/lisp-on-tex/
+\end{verbatim}
+
+
+\end{document}

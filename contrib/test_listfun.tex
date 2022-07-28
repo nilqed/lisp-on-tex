@@ -1,0 +1,205 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{lmodern}
+\usepackage[left=2cm,right=2cm,top=2cm,bottom=2cm]{geometry}
+\usepackage{framed}
+\usepackage{lisp-on-tex}
+\input{listfun.sty}
+\author{Kurt Pagani}
+\title{Test listfun.sty}
+\begin{document}
+\maketitle
+\tableofcontents
+
+\section{Standard functions}
+
+\subsection{writeList}
+\begin{verbatim}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% \writeList \lst \b \sep \e 
+%%% -- \lst .......... the list to display
+%%% -- \b   .......... the begin character, e.g. '['
+%%% -- \sep .......... the separator, e.g. ', '
+%%% -- \e   .......... then end character, e.g. ']'
+%%% Writes out a list in the form specified.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ 
+(\define \lstA (\list 'a' 'b' '$\delta$' :12 '$\pi$'))
+(\define \lstB (\list '\LaTeX' (\list '$\frac{\xi}{\Omega}$' :999) '$\partial\Gamma$'))
+%
+(\texprint '\begin{center}')
+(\writeList \lstA '[' ', ' ']')
+(\texprint '\end{center}')
+%
+(\texprint '\begin{center}')
+(\writeList \lstB '[' ', ' ']')
+(\texprint '\end{center}') 
+%
+(\texprint '\begin{center}')
+(\writeList \lstA '(' ' ' ')')
+(\texprint '\end{center}')
+%
+(\texprint '\begin{center}')
+(\writeList \lstB '\{' ' :: ' '\}')
+(\texprint '\end{center}')
+\end{verbatim}
+
+\begin{framed}
+\lispinterp{%
+(\define \lstA (\list 'a' 'b' '$\delta$' :12 '$\pi$'))
+(\define \lstB (\list '\LaTeX' (\list '$\frac{\xi}{\Omega}$' :999) '$\partial\Gamma$'))
+%
+(\texprint '\begin{center}')
+(\writeList \lstA '[' ', ' ']')
+(\texprint '\end{center}')
+%
+(\texprint '\begin{center}')
+(\writeList \lstB '[' ', ' ']')
+(\texprint '\end{center}')
+%
+(\texprint '\begin{center}')
+(\writeList \lstA '(' ' ' ')')
+(\texprint '\end{center}')
+%
+(\texprint '\begin{center}')
+(\writeList \lstB '\{' ' :: ' '\}')
+(\texprint '\end{center}')
+}
+\end{framed}
+
+\subsection{equalQ}
+\begin{verbatim}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% \equalQ \x \y
+%%% -- \x, \y any lisp type
+%%% Tests equality recursively.
+%%% Note that atomQ () -> /f, i.e () is not an atom.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+(\print (\equalQ (\list) ()))
+(\print (\equalQ \lstA \lstB))
+(\print (\equalQ \lstA \lstA))
+(\print (\equalQ \lstB \lstB))
+(\print (\equalQ :123 :123))
+(\print (\equalQ :0 :-0))
+(\print (\equalQ '$\alpha$' '$\alpha$'))
+(\print (\equalQ 'A' 'a'))
+\end{verbatim}
+
+\begin{framed}
+\lispinterp{
+(\print (\equalQ (\list) ()))
+(\print (\equalQ \lstA \lstB))
+(\print (\equalQ \lstA \lstA))
+(\print (\equalQ \lstB \lstB))
+(\print (\equalQ :123 :123))
+(\print (\equalQ :0 :-0))
+(\print (\equalQ '$\alpha$' '$\alpha$'))
+(\print (\equalQ 'A' 'a'))
+}
+\end{framed}
+
+\subsection{atomOrNilQ}
+\begin{verbatim}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% \atomOrNilQ \x
+%%% Check whether \x is an atom or the empty list (). Returns /f otherwise.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+(\print (\atomQ () ))
+(\print (\nilQ () ))
+(\print (\atomOrNilQ () ))
+(\print (\atomOrNilQ :1222))
+(\print (\atomOrNilQ 'string'))
+(\print (\atomOrNilQ \lstA))
+\end{verbatim}
+
+\begin{framed}
+\lispinterp{
+(\print (\atomQ () ))
+(\print (\nilQ () ))
+(\print (\atomOrNilQ () ))
+(\print (\atomOrNilQ :1222))
+(\print (\atomOrNilQ 'string'))
+(\print (\atomOrNilQ \lstA))
+}
+\end{framed}
+
+\subsection{append}
+\begin{verbatim}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% \append \x \y
+%%% Append \y to the list \x.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+(\define \lstAB (\append \lstA \lstB))
+(\writeList \lstAB '(' ', ' ')')
+(\texprint '\\') % newline
+(\writeList (\append \lstA (\list 'the end of the list')) '[' ', ' ']')
+\end{verbatim}
+
+\begin{framed}
+\noindent
+\lispinterp{
+(\define \lstAB (\append \lstA \lstB))
+(\writeList \lstAB '(' ', ' ')')
+(\texprint '\\') % newline
+(\writeList (\append \lstA (\list 'the end of the list')) '[' ', ' ']')
+}
+\end{framed}
+
+\subsection{subst}
+\begin{verbatim}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% \subst \x \y \z
+%%% Substitute \x for \y in the list \z.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+(\writeList (\subst '\copyright' '\LaTeX' \lstAB ) '[' ', ' ']')
+(\texprint '\\') % newline
+(\writeList (\subst 'nine' :999 \lstAB ) '[' ', ' ']')
+(\texprint '\\') % newline
+(\writeList (\subst (\list :1 :2 'Z') :999 \lstAB ) '[' ', ' ']')
+\end{verbatim}
+
+\begin{framed}
+\noindent
+\lispinterp{
+(\writeList (\subst '\copyright' '\LaTeX' \lstAB ) '[' ', ' ']')
+(\texprint '\\') % newline
+(\writeList (\subst 'nine' :999 \lstAB ) '[' ', ' ']')
+(\texprint '\\') % newline
+(\writeList (\subst (\list :1 :2 'Z') :999 \lstAB ) '[' ', ' ']')
+}
+\end{framed}
+
+\subsection{memberQ}
+\begin{verbatim}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% \memberQ \x \y
+%%% If \x is a member of \y then return /t else /f. 
+%%% Note: \x may be a sublist, and atoms are members only on first level!
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+(\print (\memberQ '\LaTeX' \lstAB))
+(\print (\memberQ :999 \lstAB))
+(\print (\memberQ '$\partial\Gamma$' \lstAB))
+(\print (\memberQ (\list 'abc' :99)  (\list \lstA (\list 'abc' :99) \lstB))) % /t
+(\print (\memberQ (\list '$\frac{\xi}{\Omega}$' :999) \lstAB))
+\end{verbatim}
+
+\begin{framed}
+\noindent
+\lispinterp{
+(\print (\memberQ '\LaTeX' \lstAB))
+(\print (\memberQ :999 \lstAB))
+(\print (\memberQ '$\partial\Gamma$' \lstAB))
+(\print (\memberQ (\list 'abc' :99)  (\list \lstA (\list 'abc' :99) \lstB))) % /t
+(\print (\memberQ (\list '$\frac{\xi}{\Omega}$' :999) \lstAB))
+}
+\end{framed}
+
+
+
+
+
+\end{document}

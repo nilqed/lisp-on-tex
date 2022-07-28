@@ -1,0 +1,92 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% \writeList \lst \b \sep \e 
+%%% -- \lst .......... the list to display
+%%% -- \b   .......... the begin character, e.g. '['
+%%% -- \sep .......... the separator, e.g. ', '
+%%% -- \e   .......... then end character, e.g. ']'
+%%% Writes out a list in the form specified.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\lispinterp{
+(\define (\writeListPart \lst \b \sep \e)
+ (\lispif (\listQ \lst)
+  (\let ((\x (\car \lst)) (\y (\cdr \lst)))
+   (\lispif (\atomQ \x)
+    (\begin (\texprint \x)
+     (\lispif (\nilQ \y)
+      (\texprint \e)
+       (\begin (\texprint \sep)(\writeListPart \y \b \sep \e))))               
+       (\begin (\texprint \b)
+         (\writeListPart \x \b \sep \e)
+         (\lispif (\nilQ \y)
+         (\texprint \e)
+         (\begin (\texprint \sep)(\writeListPart \y \b \sep \e))))))
+ (\texprint 'ERR')))
+%%%
+(\define (\writeList \lst \b \sep \e)
+  (\lispif (\nilQ \lst) (\begin (\texprint \b)(\texprint \e))
+    (\begin (\texprint \b)
+      (\writeListPart \lst \b \sep \e))))
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% \equalQ \x \y
+%%% -- \x, \y any lisp type
+%%% Tests equality recursively.
+%%% Note that atomQ () -> /f, i.e () is not an atom.
+%%% Wrong in LISP 1.5 Programmers manual (y might be an atom as well)?
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\lispinterp{
+(\define (\equalQ \x \y)
+  (\lispif (\or (\nilQ \x) (\atomQ \x)) 
+      (\lispif (\or (\nilQ \y) (\atomQ \y)) (\= \x \y) /f)
+        (\begin
+         (\lispif (\atomOrNilQ \y) (\lispif (\atomOrNilQ \x) (\= \x \y) /f)
+           (\lispif (\equalQ (\car \x) (\car \y))
+                  (\equalQ (\cdr \x) (\cdr \y)) /f))))) 
+}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% \atomOrNilQ \x
+%%% Check whether \x is an atom or the empty list (). Returns /f otherwise.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\lispinterp{
+(\define (\atomOrNilQ \x) (\or (\atomQ \x) (\nilQ \x))) 
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% \append \x \y
+%%% Append \y to the list \x.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
+\lispinterp{
+(\define (\append \x \y)
+  (\lispif (\nilQ \x) \y 
+     (\cons (\car \x) (\append (\cdr \x) \y))))    
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% \subst \x \y \z
+%%% Substitute \x for \y in the list \z.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\lispinterp{
+(\define (\subst \x \y \z) 
+  (\lispif (\equalQ \y \z) \x %else
+    (\lispif (\atomOrNilQ \z) \z %else
+      (\cons (\subst \x \y (\car \z)) (\subst \x \y (\cdr \z))))))
+}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% \memberQ \x \y
+%%% If \x is a member of \y then return /t else /f. 
+%%% Note: \x may be a sublist, and atoms are members only on first level!
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\lispinterp{
+(\define (\memberQ \x \y) 
+  (\lispif (\atomOrNilQ \y) /f %else
+    (\lispif (\equalQ \x (\car \y)) /t %else
+      (\memberQ \x (\cdr \y))))) 
+}      
+
+
+
