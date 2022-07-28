@@ -1,5 +1,13 @@
 # LISP on TeX #
 
+**NOTE:** This is a fork of HAKUTA Shizuya's awesome `lisp-on-tex`package.
+
+ * https://github.com/hak7a3/lisp-on-tex
+ * https://www.ctan.org/pkg/lisp-on-tex
+
+Contribs are in the branch `lispfun`, folder `contrib`.
+
+---
 A LISP interpreter written only with TeX macros.
 It works as a style file of LaTeX.
 LISP on TeX adopts static scoping, dynamic typing, and eager evaluation.
