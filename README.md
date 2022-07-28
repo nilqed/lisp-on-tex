@@ -5,7 +5,7 @@
  * https://github.com/hak7a3/lisp-on-tex
  * https://www.ctan.org/pkg/lisp-on-tex
 
-Contribs are in the branch `lispfun`, folder `contrib`.
+Contribs are in the branch `listfun`, folder `contrib`.
 
 ---
 A LISP interpreter written only with TeX macros.
