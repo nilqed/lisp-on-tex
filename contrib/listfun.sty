@@ -28,6 +28,7 @@
       (\writeListPart \lst \b \sep \e))))
 }
 
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% \equalQ \x \y
 %%% -- \x, \y any lisp type
@@ -54,6 +55,7 @@
 (\define (\atomOrNilQ \x) (\or (\atomQ \x) (\nilQ \x))) 
 }
 
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% \append \x \y
 %%% Append \y to the list \x.
@@ -63,6 +65,7 @@
   (\lispif (\nilQ \x) \y 
      (\cons (\car \x) (\append (\cdr \x) \y))))    
 }
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% \subst \x \y \z
@@ -86,7 +89,148 @@
   (\lispif (\atomOrNilQ \y) /f %else
     (\lispif (\equalQ \x (\car \y)) /t %else
       (\memberQ \x (\cdr \y))))) 
-}      
+} 
 
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% \pairlis \x \y \a
+%%% Give the list of pairs of corresponding elements of the lists \x and
+%%% \y, and appends this to the list \a. The resultant list of pairs, which 
+%%% is like a table with two columns, is called an association list. 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\lispinterp{
+(\define (\pairlis \x \y \a)
+  (\lispif (\atomOrNilQ \x) \a
+      (\cons (\cons (\car \x) (\car \y)) (\pairlis (\cdr \x) (\cdr \y) \a)))) 
+} 
 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% \assoc \x \a
+%%% If \a is an association list, then \assoc will produce the first pair 
+%%% whose first term is \x. Thus it is a table searching function. 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\lispinterp{
+(\define (\assoc \x \a)
+  (\lispif (\equalQ (\car (\car \a)) \x) (\car \a) %else
+      (\assoc \x (\cdr \a)))) 
+}  
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% \sublis \a \y 
+%%% Here \a is assumed to be an association list of the form 
+%%% ((ul . v l ) . . . (un . v,)), where the u1's are atomic, and \y is 
+%%% any S-expression. What \sublis does, is to treat the u1's as variables 
+%%% when they occur in \y, and to substitute the corresponding v1's
+%%% from the pair list. 
+%%% Note: \sublisXXX is the helper function sub2 in the LISP 1.5 Programmer
+%%% Manual (from where we have the info:).
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\lispinterp{
+(\define (\sublisXXX \a \z)
+  (\lispif (\atomOrNilQ \a) \z  %else
+      (\lispif (\equalQ (\car (\car \a)) \z) (\cdr (\car \a)) %else
+          (\sublisXXX (\cdr \a) \z))))
+%%
+(\define (\sublis \a \y)
+  (\lispif (\atomOrNilQ \y) (\sublisXXX \a \y) %else
+      (\cons (\sublis \a (\car \y)) (\sublis \a (\cdr \y)))))
+}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% \union \x \y 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\lispinterp{
+(\define (\union \x \y)
+  (\lispif (\nilQ \x) \y %else
+      (\lispif (\memberQ (\car \x) \y) (\union (\cdr \x) \y)
+          (\cons (\car \x) (\union (\cdr \x) \y)))))
+}     
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% \intersection \x \y 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
+\lispinterp{
+(\define (\intersection \x \y)
+  (\lispif (\nilQ \x) () %else
+      (\lispif (\memberQ (\car \x) \y) (\cons (\car \x) 
+         (\intersection (\cdr \x) \y)) %else
+      (\intersection (\cdr \x) \y))))
+}
+  
+    
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% \reverse \x  
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\lispinterp{
+(\define (\revXXX \r \t)
+  (\lispif (\not (\nilQ \t)) (\revXXX (\cons (\car \t) \r) (\cdr \t)) \r))
+%
+(\define (\reverse \x) (\revXXX () \x))
+}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% \foldr \f \x \t  
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\lispinterp{
+(\define (\foldr \f \x \t)
+  (\lispif (\not (\nilQ \t))
+    (\f (\car \t) (\foldr \f \x (\cdr \t)))
+            \x))
+}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% \foldl \f \x \t  
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\lispinterp{
+(\define (\foldl \f \x \t)
+   (\lispif (\not (\nilQ \t))
+      (\foldl \f (\f (\car \t) \x) (\cdr \t))
+            \x))
+}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% \filter \f \t  
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\lispinterp{
+(\define (\filter \f \t)
+   (\lispif (\not (\nilQ \t))
+            (\lispif (\f (\car \t))
+                (\cons (\car \t) (\filter \f (\cdr \t)))
+                (\filter \f (\cdr \t)))
+            ()
+ ))
+}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% \allQ \f \t  
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\lispinterp{
+(\define (\allQ \f \t)
+    (\lispif (\not (\nilQ \t))
+            (\lispif (\f (\car \t))
+                (\allQ \f (\cdr \t))
+                /f)
+            /t))
+}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% \anyQ \f \t  
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\lispinterp{
+(\define (\anyQ \f \t)
+     (\lispif (\not (\nilQ \t))
+            (\lispif (\f (\car \t))
+                /t
+                (\anyQ \f (\cdr \t)))
+            /f
+))
+}
