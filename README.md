@@ -7,6 +7,8 @@
 
 Contribs are in the branch `listfun`, folder `contrib`.
 
+[Cheatsheet](https://github.com/nilqed/lisp-on-tex/blob/listfun/contrib/lisp_on_tex.pdf) as PDF.
+
 ---
 A LISP interpreter written only with TeX macros.
 It works as a style file of LaTeX.
