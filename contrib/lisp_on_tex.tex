@@ -1,0 +1,209 @@
+\documentclass[a4paper,landscape,columns=3]{cheatsheet}
+\usepackage{framed}
+\usepackage{pgfplots}
+\usepackage{listings}
+\usepackage{color}
+\newcommand{\pT}[1]{\texttt{\textbackslash #1}}
+%
+% https://www.ctan.org/pkg/cheatsheet
+%
+\title{Lisp on \TeX}
+\author{by HAKUTA Shizuya \\
+\\Kurt Pagani\\\href{mailto:nilqed@gmail.com}{nilqed@gmail.com}}
+%\date{\today}
+\date{August 8, 2022}
+%
+\lstdefinelanguage{LispOnTeX}
+{keywords={define,defineM,lambda,setB,defmacro,macroexpand,let,letM,letrec,
+           lispif,begin,callOCC,quote,cons,car,cdr,list,length,map,nth},
+keywords=[2]{concat,intTOstring,group,ungroup,expand,print,texprint,
+             readLaTeXCounter,message,read,fgets},
+keywords=[3]{symbolQ,stringQ,intQ,booleanQ,dimenQ,skipQ,pairQ,nilQ,funcQ,
+             closureQ,macroQ,listQ,atomQ,procedureQ,isZeroQ,positiveQ,
+             negativeQ},
+keywords=[4]{mod,max,min,geq,leq,and,or,not},             
+keywordstyle=[2]\color{red},
+keywordstyle=[3]\color{teal},
+keywordstyle=[4]\color{brown},
+sensitive=true,%
+alsoletter={\$},%
+comment=[l]{//},%
+string=[b]",%
+string=[b]'%
+}
+
+\lstset{frame=tb,
+  language=LispOnTex,
+  aboveskip=3mm,
+  belowskip=3mm,
+  showstringspaces=false,
+  columns=flexible,
+  basicstyle={\small\ttfamily},
+  numbers=none,
+  numberstyle=\tiny\color{gray},
+  keywordstyle=\color{blue},
+  commentstyle=\color{dkgreen},
+  stringstyle=\color{cyan},
+  breaklines=true,
+  breakatwhitespace=true,
+  tabsize=3
+}
+%%%%%%%%%
+
+%
+\begin{document}
+\maketitle
+%
+\textbf{Usage}: \pT{usepackage\{lisp-on-tex\}}
+
+\section{Syntax}
+\resizebox{9cm}{!}{
+\begin{tabular}{|l|l}
+\hline
+Kinds  & Literals \\        
+\hline\hline
+\tt{CONS Cell} & \tt{`(` *obj* ... `.` *obj* `)`, `(` *obj* ... `)`} \\
+\tt{Integer}   & \tt{`:` *TeX's integer*}                            \\
+\tt{String}    & \tt{`'` *TeX's balanced tokens* `'`}                \\
+\tt{Symbol}    & \tt{*TeX's control sequence*}                       \\
+\tt{Boolean}   & \tt{`/t` or `/f`}                                   \\
+\tt{Nil}       & \tt{`()`}                                           \\
+\tt{Skip}      & \tt{`@` *TeX's skip*}                               \\
+\tt{Dimen}     & \tt{`!` *TeX's dimen*}                              \\
+\hline
+\end{tabular}}
+%
+\section{Definition}
+\begin{lstlisting}
+  \define  : Define a symbol.
+  \defineM : Define a mutable symbol.
+  \setB : Rewrite a mutable symbol.
+  \defmacro : Define a macro.
+  \macroexpand : Expand a macro
+  \lambda : Create a function.
+  \let : Define local symbols.
+  \letM : Define mutable local symbols.
+  \letrec : Define local symbols recursively.
+\end{lstlisting}
+%
+\section{Control Flow}
+\begin{lstlisting}
+  \lispif : Branch.
+  \begin : Execute expressions.
+  \callOCC : One-shot continuation.
+\end{lstlisting}
+%
+%
+\section{String Manipulations}
+\begin{lstlisting}
+  \concat : Concatenate tokens.
+  \intTOstring : Convert a integer to TeX tokens.
+  \group : Grouping.
+  \ungroup : Ungrouping.
+  \expand : Expand tokens.
+\end{lstlisting}
+%
+%
+\section{Arithmetical Functions}
+\begin{lstlisting}
+  \+ : Addition.
+  \- : Subtraction.
+  \* : Multiplication.
+  \/ : Division.
+  \mod : Modulo.
+  \>, \<, \geq, \leq : Comparison.
+  \max : Maximum.
+  \min : Minimum.
+\end{lstlisting}
+%
+%
+\section{Logical functions}
+\begin{lstlisting}
+  \and, \or, \not : Logical and, or, not 
+\end{lstlisting}
+%
+%
+\section{Traditional LISP Functions and Special Forms}
+\begin{lstlisting}
+  \quote : Quote.
+  \cons, \car, \cdr : CONS, CAR, CDR
+  \list : Create a list
+  \length : Get the size of a LIST.
+  \map : Map function.
+  \nth : Get the n-th value of a LIST (starting with 0).
+  \= : Equality.
+  \texprint : Convert a object to TeX tokens and output it to the document
+  \print : (For test) output a object as TeX tokens
+\end{lstlisting}
+%
+%
+\section{Type Predicates}
+\begin{lstlisting}
+  (\symbolQ (\quote \cs))
+  (\stringQ 'foo')
+  (\intQ :42)
+  (\booleanQ /f)
+  (\dimenQ !12pt)
+  (\skipQ @12pt plus 1in minus 3mm)
+  (\pairQ (\cons :1 :2))
+  (\nilQ ())
+  (\funcQ \+)
+  (\closureQ (\lambda () ()))
+  (\defmacro (\x) ())
+  (\macroQ \x)
+  (\listQ ())
+  (\listQ (\list :1 :2))
+  (\atomQ :23)
+  (\atomQ 'bar')
+  (\procedureQ \+)
+  (\procedureQ (\lambda () ()))
+  (\isZeroQ :0)    % /t
+  (\positiveQ :42) % /t
+  (\negativeQ :-2) % /t
+\end{lstlisting}
+%
+%
+\section{\LaTeX Utils}
+\begin{lstlisting}
+  \readLaTeXCounter : Read an integer from LaTeX
+  \message : Wrapper of LaTeX \message
+  \read : Read a LISP expression from stdin
+  \fgets : Read a string from stdin.
+\end{lstlisting}
+
+\subsection{Class Options}
+\begin{tabular}{|c|c|}
+\hline 
+Option Name & Meaning \\ 
+\hline\hline 
+\tt{noGC} & Never use GC (default) \\ 
+\hline 
+\tt{markGC} & Using Mark-Sweep GC \\ 
+\hline 
+\tt{GCopt=...} & Passing option to the GC engine \\ 
+\hline 
+\end{tabular} 
+%
+%
+\section{Additional Packages}
+\subsection{Fixed Point Numbers}
+The package \texttt{lisp-mod-fpnum} adds fixed point numbers to LISP on \TeX. 
+Load it by \pT{usepackage}:
+
+\begin{verbatim}
+\usepackage{lisp-on-tex}
+\usepackage{lisp-mod-fpnum}
+\end{verbatim}
+%
+\subsection{Regular Expressions}
+The package \texttt{lisp-mod-l3regex} is thin wrapper of 
+\texttt{l3regex}. Load it by \pT{usepackage}:
+
+\begin{verbatim}
+  \usepackage{lisp-on-tex}
+  \usepackage{lisp-mod-l3regex}
+\end{verbatim}
+
+\scriptsize{For details and examples consult the manual.} \\
+\scriptsize{\url{https://github.com/nilqed/lisp-on-tex}}
+\end{document}
