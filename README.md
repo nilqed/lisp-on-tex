@@ -7,7 +7,11 @@
 
 Contribs are in the branch `listfun`, folder `contrib`.
 
-[Cheatsheet](https://github.com/nilqed/lisp-on-tex/blob/listfun/contrib/lisp_on_tex.pdf) as PDF.
+### Docs (PDF)
+  1. [Readme](https://github.com/nilqed/lisp-on-tex/blob/listfun/contrib/lisp_on_tex_readme.pdf)
+  2. [Cheatsheet 1](https://github.com/nilqed/lisp-on-tex/blob/listfun/contrib/lisp_on_tex.pdf) 
+  3. [Cheatsheet 2](https://github.com/nilqed/lisp-on-tex/blob/listfun/contrib/lisp_on_tex_2.pdf) 
+  4. [List funcs (test)](https://github.com/nilqed/lisp-on-tex/blob/listfun/contrib/test_listfun.pdf) 
 
 ---
 A LISP interpreter written only with TeX macros.
