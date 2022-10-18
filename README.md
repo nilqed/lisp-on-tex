@@ -13,6 +13,10 @@ Contribs are in the branch `listfun`, folder `contrib`.
   3. [Cheatsheet 2](https://github.com/nilqed/lisp-on-tex/blob/listfun/contrib/lisp_on_tex_2.pdf) 
   4. [List funcs (test)](https://github.com/nilqed/lisp-on-tex/blob/listfun/contrib/test_listfun.pdf) 
 
+
+### Use with Texmaker ;)
+![lot_texmaker](https://github.com/nilqed/lisp-on-tex/blob/listfun/contrib/lot_texmaker.png)
+
 ---
 A LISP interpreter written only with TeX macros.
 It works as a style file of LaTeX.
