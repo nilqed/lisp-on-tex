@@ -9,6 +9,8 @@ Contribs are in the branch `listfun`, folder `contrib`.
 
 [Cheatsheet](https://github.com/nilqed/lisp-on-tex/blob/listfun/contrib/lisp_on_tex.pdf) as PDF.
 
+### Use with Texmaker ;)
+![lot_texmaker](https://github.com/nilqed/lisp-on-tex/blob/listfun/contrib/lot_texmaker.png)
 ---
 A LISP interpreter written only with TeX macros.
 It works as a style file of LaTeX.
